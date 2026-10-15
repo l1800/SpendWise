@@ -1,0 +1,333 @@
+{
+	"info": {
+		"name": "כלכלה נבונה — GradualBudgetService Tests",
+		"description": "בדיקות ל-API של בניית תקציב חודשי הדרגתי\n\nBase URL: http://127.0.0.1:5000\n\nBefore running:\n1. python main.py  (הפעלת השרת)\n2. Verify user_id=1 exists in Users table\n3. Verify there are expenses for user 1 in recent months",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:5000"
+		},
+		{
+			"key": "user_id",
+			"value": "1"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Build Plan — Basic (current month)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// =====================================================",
+							"// Test: Basic plan build for current month",
+							"// =====================================================",
+							"",
+							"pm.test('Status 200', () => pm.response.to.have.status(200));",
+							"",
+							"const json = pm.response.json();",
+							"",
+							"// ── Top-level fields ──",
+							"pm.test('Has required fields', () => {",
+							"    const required = ['year','month','mode','status','net_budget','monthly_limit','planned_spending','saved_this_month','months_active','budget'];",
+							"    required.forEach(f => pm.expect(json).to.have.property(f));",
+							"});",
+							"",
+							"// ── mode ──",
+							"pm.test('mode is learning or gradual', () => {",
+							"    pm.expect(['learning','gradual']).to.include(json.mode);",
+							"});",
+							"",
+							"// ── status ──",
+							"pm.test('status is valid', () => {",
+							"    pm.expect(['LEARNING','HEALTHY','TIGHT','BALANCED','CRITICAL','IMPOSSIBLE_BUDGET','']).to.include(json.status);",
+							"});",
+							"",
+							"// ── Numbers are reasonable ──",
+							"pm.test('net_budget is number', () => pm.expect(json.net_budget).to.be.a('number'));",
+							"pm.test('monthly_limit is number', () => pm.expect(json.monthly_limit).to.be.a('number'));",
+							"pm.test('planned_spending is non-negative', () => pm.expect(json.planned_spending).to.be.at.least(0));",
+							"pm.test('saved_this_month is non-negative', () => pm.expect(json.saved_this_month).to.be.at.least(0));",
+							"pm.test('months_active is number', () => pm.expect(json.months_active).to.be.a('number'));",
+							"",
+							"// ── Budget items ──",
+							"pm.test('budget is non-empty array', () => {",
+							"    pm.expect(json.budget).to.be.an('array').that.is.not.empty;",
+							"});",
+							"",
+							"// ── Each budget item has required fields ──",
+							"const itemFields = ['category_id','category_name','current_amount','target_amount','planned_amount','reduction','reduction_pct','gap','months_to_target','is_essential','is_fixed_cost','importance','status'];",
+							"json.budget.forEach((item, i) => {",
+							"    pm.test(`Budget item ${i} (${item.category_name}) has all fields`, () => {",
+							"        itemFields.forEach(f => pm.expect(item, `missing ${f}`).to.have.property(f));",
+							"    });",
+							"    ",
+							"    pm.test(`Budget item ${i} planned_amount is number`, () => {",
+							"        pm.expect(item.planned_amount).to.be.a('number');",
+							"    });",
+							"    ",
+							"    pm.test(`Budget item ${i} status is valid`, () => {",
+							"        pm.expect(['learning','on_target','persistent_overspend','underused','reducing','protected','unchanged','']).to.include(item.status);",
+							"    });",
+							"});",
+							"",
+							"// ── Consistency: planned_spending == sum of planned_amount ──",
+							"pm.test('planned_spending matches sum of budget items', () => {",
+							"    const sum = json.budget.reduce((acc, b) => acc + b.planned_amount, 0);",
+							"    pm.expect(Math.abs(json.planned_spending - sum)).to.be.below(1); // tolerance 1₪",
+							"});",
+							"",
+							"// ── Consistency: saved = net_budget - planned_spending ──",
+							"pm.test('saved_this_month matches net_budget - planned_spending', () => {",
+							"    const expected = Math.max(0, json.net_budget - json.planned_spending);",
+							"    pm.expect(Math.abs(json.saved_this_month - expected)).to.be.below(1);",
+							"});",
+							"",
+							"// ── warnings field exists ──",
+							"pm.test('warnings field exists (null or array)', () => {",
+							"    pm.expect(json.warnings).to.satisfy(v => v === null || Array.isArray(v));",
+							"});",
+							"",
+							"// ── Save IDs for next requests ──",
+							"if (json.budget.length > 0) {",
+							"    pm.environment.set('test_year', json.year);",
+							"    pm.environment.set('test_month', json.month);",
+							"    pm.environment.set('test_cat_id', json.budget[0].category_id);",
+							"}",
+							"",
+							"console.log(`Mode: ${json.mode}, Status: ${json.status}, Budget items: ${json.budget.length}`);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/budget/plan/{{user_id}}/2026/7",
+					"host": ["{{base_url}}"],
+					"path": ["budget", "plan", "{{user_id}}", "2026", "7"]
+				}
+			}
+		},
+		{
+			"name": "2. Build Plan — Previous month (history exists)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status 200', () => pm.response.to.have.status(200));",
+							"const json = pm.response.json();",
+							"",
+							"pm.test('budget is non-empty', () => pm.expect(json.budget).to.be.an('array').that.is.not.empty);",
+							"",
+							"pm.test('mode should be gradual (not learning)', () => {",
+							"    pm.expect(json.mode).to.equal('gradual');",
+							"});",
+							"",
+							"console.log(`Previous month: ${json.year}-${json.month}, Mode: ${json.mode}`);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/budget/plan/{{user_id}}/2026/6",
+					"host": ["{{base_url}}"],
+					"path": ["budget", "plan", "{{user_id}}", "2026", "6"]
+				}
+			}
+		},
+		{
+			"name": "3. Build Plan — Far future (no data, should handle gracefully)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status 200 (should not crash)', () => pm.response.to.have.status(200));",
+							"const json = pm.response.json();",
+							"",
+							"pm.test('Has budget array', () => pm.expect(json.budget).to.be.an('array'));",
+							"",
+							"// May be empty or have targets-only items",
+							"console.log(`Future month: ${json.year}-${json.month}, Items: ${json.budget.length}`);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/budget/plan/{{user_id}}/2028/1",
+					"host": ["{{base_url}}"],
+					"path": ["budget", "plan", "{{user_id}}", "2028", "1"]
+				}
+			}
+		},
+		{
+			"name": "4. Build Plan — Non-existent user (error handling)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status 200 or 500 with error', () => {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 404, 500]);",
+							"});",
+							"",
+							"// Should gracefully handle missing user — either returns empty or error message",
+							"const json = pm.response.json();",
+							"console.log(`Missing user response: ${JSON.stringify(json)}`);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/budget/plan/99999/2026/7",
+					"host": ["{{base_url}}"],
+					"path": ["budget", "plan", "99999", "2026", "7"]
+				}
+			}
+		},
+		{
+			"name": "5. Budget Status — Verify saved plan",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status 200', () => pm.response.to.have.status(200));",
+							"const json = pm.response.json();",
+							"",
+							"pm.test('Has monthly_limit', () => pm.expect(json).to.have.property('monthly_limit'));",
+							"pm.test('Has status', () => pm.expect(json).to.have.property('status'));",
+							"pm.test('Has rebalance', () => pm.expect(json).to.have.property('rebalance'));",
+							"",
+							"console.log(`Budget status: limit=${json.monthly_limit}`);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/budget/status?user_id={{user_id}}&year=2026&month=7",
+					"host": ["{{base_url}}"],
+					"path": ["budget", "status"],
+					"query": [
+						{"key": "user_id", "value": "{{user_id}}"},
+						{"key": "year", "value": "2026"},
+						{"key": "month", "value": "7"}
+					]
+				}
+			}
+		},
+		{
+			"name": "6. Raw Budget Plans — Verify DB save",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status 200', () => pm.response.to.have.status(200));",
+							"const json = pm.response.json();",
+							"",
+							"pm.test('Has plans array', () => pm.expect(json).to.have.property('plans'));",
+							"",
+							"if (json.plans.length > 0) {",
+							"    pm.test('Each plan has required fields', () => {",
+							"        json.plans.forEach(p => {",
+							"            pm.expect(p).to.have.property('category_id');",
+							"            pm.expect(p).to.have.property('planned_amount');",
+							"            pm.expect(p).to.have.property('holiday_adjustment');",
+							"            pm.expect(p).to.have.property('created_at');",
+							"        });",
+							"    });",
+							"    ",
+							"    pm.test('No duplicate categories', () => {",
+							"        const cids = json.plans.map(p => p.category_id);",
+							"        pm.expect(new Set(cids).size).to.equal(cids.length);",
+							"    });",
+							"}",
+							"",
+							"console.log(`Saved ${json.plans.length} plan rows`);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/budget/plans?user_id={{user_id}}&year=2026&month=7",
+					"host": ["{{base_url}}"],
+					"path": ["budget", "plans"],
+					"query": [
+						{"key": "user_id", "value": "{{user_id}}"},
+						{"key": "year", "value": "2026"},
+						{"key": "month", "value": "7"}
+					]
+				}
+			}
+		},
+		{
+			"name": "7. Idempotency — Same call twice returns consistent result",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status 200', () => pm.response.to.have.status(200));",
+							"const json = pm.response.json();",
+							"",
+							"const prevCount = pm.environment.get('prev_budget_count');",
+							"const prevSpending = pm.environment.get('prev_planned_spending');",
+							"",
+							"if (prevCount) {",
+							"    pm.test('Same budget item count as first call', () => {",
+							"        pm.expect(json.budget.length).to.equal(parseInt(prevCount));",
+							"    });",
+							"    pm.test('Same planned_spending as first call', () => {",
+							"        pm.expect(json.planned_spending).to.equal(parseFloat(prevSpending));",
+							"    });",
+							"} else {",
+							"    // First run — save values",
+							"    pm.environment.set('prev_budget_count', json.budget.length);",
+							"    pm.environment.set('prev_planned_spending', json.planned_spending);",
+							"    console.log(`Saved baseline: ${json.budget.length} items, ${json.planned_spending}₪`);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/budget/plan/{{user_id}}/2026/7",
+					"host": ["{{base_url}}"],
+					"path": ["budget", "plan", "{{user_id}}", "2026", "7"]
+				}
+			}
+		}
+	]
+}

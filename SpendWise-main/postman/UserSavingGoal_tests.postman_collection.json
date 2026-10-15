@@ -1,0 +1,55 @@
+{
+  "info": {
+    "name": "UserSavingGoal — Savings Distribution API",
+    "description": "בדיקות API לחלוקת חיסכון חודשית",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET — צפייה בהקצאות",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:5000/savings/distribution/9/2026/7",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["savings", "distribution", "9", "2026", "7"]
+        }
+      }
+    },
+    {
+      "name": "PUT — עדכון הקצאות",
+      "request": {
+        "method": "PUT",
+        "url": {
+          "raw": "http://localhost:5000/savings/distribution/9/2026/7",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["savings", "distribution", "9", "2026", "7"]
+        },
+        "header": [
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"allocations\": [\n    {\"goal_id\": 1, \"amount\": 800},\n    {\"goal_id\": 2, \"amount\": 1200}\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "POST — אישור והעברה ל-Savings_Goals",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "http://localhost:5000/savings/distribution/9/2026/7/apply",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["savings", "distribution", "9", "2026", "7", "apply"]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+=== MONTH-BY-MONTH DETAILS ===
+
+2025-07: mode=learning month=1 net=12,000 planned=17,820
+  Phase 1 reductions (per-category):
+  Phase 1 total reduction: 0
+  Phase 2 (smart correction): planned went from 17,840 to 17,820
+  Total reduction: 0
+  Warnings: ['לא ניתן לאזן תקציב — ההוצאות המתוכננות (17,820₪) עולות על ההכנסה הפנויה (12,000₪)']
+
+2025-08: mode=gradual month=2 net=12,000 planned=12,000
+  Phase 1 reductions (per-category):
+    cat 1027: current=  2,550 target=  2,000 planned=  1,787 red=  1,773 ( 69.5%) fix=False ess=True
+    cat 1028: current=  1,800 target=  1,750 planned=    905 red=    895 ( 49.7%) fix=False ess=True
+    cat 1029: current=  1,400 target=  1,000 planned=    562 red=    838 ( 59.9%) fix=False ess=False
+    cat 1033: current=  1,100 target=  1,000 planned=    453 red=    647 ( 58.8%) fix=False ess=False
+    cat 1031: current=    700 target=    500 planned=    351 red=    517 ( 73.9%) fix=False ess=False
+    cat 1032: current=    850 target=    600 planned=    341 red=    509 ( 59.9%) fix=False ess=False
+    cat 1030: current=    900 target=    750 planned=    450 red=    450 ( 50.0%) fix=False ess=True
+    cat 1034: current=      0 target=    750 planned=    312 red=    438 (  0.0%) fix=False ess=False
+    cat 1025: current=    780 target=    750 planned=    389 red=    391 ( 50.1%) fix=False ess=True
+    cat 1040: current=    600 target=    500 planned=    245 red=    355 ( 59.2%) fix=False ess=False
+    cat 1035: current=    410 target=    400 planned=    205 red=    205 ( 50.0%) fix=False ess=True
+  Phase 1 total reduction: 7,018
+  Phase 2 (smart correction): planned went from 17,840 to 12,000
+  Total reduction: 7,018
+  Warnings: None
+
+2025-09: mode=gradual month=3 net=12,000 planned=12,000
+  Phase 1 reductions (per-category):
+    cat 1027: current=  2,500 target=  2,000 planned=  1,824 red=  1,662 ( 66.5%) fix=False ess=True
+    cat 1028: current=  1,820 target=  1,750 planned=    957 red=    863 ( 47.4%) fix=False ess=True
+    cat 1029: current=  1,200 target=  1,000 planned=    506 red=    694 ( 57.8%) fix=False ess=False
+    cat 1033: current=  1,150 target=  1,000 planned=    492 red=    658 ( 57.2%) fix=False ess=False
+    cat 1032: current=    800 target=    600 planned=    332 red=    468 ( 58.5%) fix=False ess=False
+    cat 1034: current=      0 target=    750 planned=    326 red=    424 (  0.0%) fix=False ess=False
+    cat 1030: current=    820 target=    750 planned=    428 red=    392 ( 47.8%) fix=False ess=True
+    cat 1031: current=    550 target=    500 planned=    294 red=    391 ( 71.1%) fix=False ess=False
+    cat 1025: current=    790 target=    750 planned=    412 red=    378 ( 47.8%) fix=False ess=True
+    cat 1040: current=    500 target=    500 planned=    218 red=    282 ( 56.5%) fix=False ess=False
+    cat 1035: current=    400 target=    400 planned=    211 red=    189 ( 47.1%) fix=False ess=True
+  Phase 1 total reduction: 6,401
+  Phase 2 (smart correction): planned went from 17,840 to 12,000
+  Total reduction: 6,401
+  Warnings: ['לא ניתן לאזן את התקציב — סך ההוצאות המתוכננות (12,000₪) עדיין גבוה מההכנסה הפנויה (12,000₪)']
+

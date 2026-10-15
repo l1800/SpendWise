@@ -1,0 +1,19 @@
+=== END OF MONTH - Budget Plan ===
+
+Year: 2025  Month: 12
+Mode: gradual  Program Month: 4
+Net Budget: 12,000
+Planned Spending: 12,000
+Saved: 0
+Status: IMPOSSIBLE_BUDGET
+Warnings: ['לא ניתן לאזן את התקציב — סך ההוצאות המתוכננות (12,000₪) עדיין גבוה מההכנסה הפנויה (12,000₪)']
+
+--- Per Category (14 total) ---
+  ׳©׳›׳™׳¨׳•׳× / ׳׳©׳›׳ ׳× planned=  4,000 reduction=      0 (  0.0%) status=on_target
+  ׳—׳©׳‘׳•׳ ׳•׳× ׳—׳©׳׳ ׳ planned=    413 reduction=    337 ( 45.6%) status=on_target
+  ׳׳¨׳ ׳•׳ ׳”              planned=    500 reduction=      0 (  0.0%) status=on_target
+  ׳׳–׳•׳ ׳•׳¡׳•׳₪׳¨׳׳¨׳§ planned=  1,783 reduction=  1,493 ( 63.5%) status=reducing
+  ׳—׳™׳ ׳•׳ ׳•׳™׳׳“׳™׳   planned=    963 reduction=    787 ( 45.0%) status=on_target
+  ׳¨׳›׳‘ ׳•׳×׳—׳‘׳•׳¨׳”     planned=    536 reduction=    714 ( 57.1%) status=reducing
+  ׳‘׳¨׳™׳׳•׳×              planned=    429 reduction=    361 ( 45.7%) status=reducing
+  ׳‘׳™׳’׳•׳“ ׳•׳”׳ ׳¢׳׳”   planned=    329 reduction=    416 ( 69.3%) status=reducing

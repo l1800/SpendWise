@@ -1,0 +1,129 @@
+{
+	"info": {
+		"name": "כלכלה נבונה — UserSavingGoal API",
+		"description": "בדיקות ל-API של חלוקת חיסכון חודשית\n\nBase URL: http://127.0.0.1:5000\n\nזרימה:\n1. GET — לראות את ההקצאות הנוכחיות\n2. PUT — למלא סכומים לכל יעד\n3. POST — לאשר ולהעביר ל-Savings_Goals",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:5000"
+		},
+		{
+			"key": "user_id",
+			"value": "9"
+		}
+	],
+	"item": [
+		{
+			"name": "1. GET — צפייה בהקצאות + יתרות",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status 200', () => pm.response.to.have.status(200));",
+							"",
+							"const json = pm.response.json();",
+							"",
+							"pm.test('Has required fields', () => {",
+							"    pm.expect(json).to.have.property('user_id');",
+							"    pm.expect(json).to.have.property('year');",
+							"    pm.expect(json).to.have.property('month');",
+							"    pm.expect(json).to.have.property('allocations');",
+							"    pm.expect(json).to.have.property('total_allocated');",
+							"    pm.expect(json).to.have.property('savings_goals');",
+							"    pm.expect(json).to.have.property('total_savings');",
+							"});",
+							"",
+							"pm.test('allocations is array', () => pm.expect(json.allocations).to.be.an('array'));",
+							"pm.test('savings_goals is array', () => pm.expect(json.savings_goals).to.be.an('array'));",
+							"",
+							"console.log(`Allocations: ${json.allocations.length}, Total savings: ${json.total_savings}`);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/savings/distribution/{{user_id}}/2026/7",
+					"host": ["{{base_url}}"],
+					"path": ["savings", "distribution", "{{user_id}}", "2026", "7"]
+				}
+			}
+		},
+		{
+			"name": "2. PUT — עדכון הקצאות",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status 200', () => pm.response.to.have.status(200));",
+							"",
+							"const json = pm.response.json();",
+							"",
+							"pm.test('Returns updated allocations', () => {",
+							"    pm.expect(json).to.have.property('allocations');",
+							"    pm.expect(json.allocations).to.be.an('array').that.is.not.empty;",
+							"});",
+							"",
+							"console.log(`Updated ${json.allocations.length} allocations`);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{"key": "Content-Type", "value": "application/json"}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"allocations\": [{\"goal_id\": 1, \"amount\": 800}, {\"goal_id\": 2, \"amount\": 1200}]}"
+				},
+				"url": {
+					"raw": "{{base_url}}/savings/distribution/{{user_id}}/2026/7",
+					"host": ["{{base_url}}"],
+					"path": ["savings", "distribution", "{{user_id}}", "2026", "7"]
+				}
+			}
+		},
+		{
+			"name": "3. POST — אישור והעברה ל-Savings_Goals",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status 200', () => pm.response.to.have.status(200));",
+							"",
+							"const json = pm.response.json();",
+							"",
+							"pm.test('Returns applied results', () => {",
+							"    pm.expect(json).to.have.property('applied');",
+							"    pm.expect(json).to.have.property('count');",
+							"});",
+							"",
+							"console.log(`Applied: ${json.count} allocations`);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/savings/distribution/{{user_id}}/2026/7/apply",
+					"host": ["{{base_url}}"],
+					"path": ["savings", "distribution", "{{user_id}}", "2026", "7", "apply"]
+				}
+			}
+		}
+	]
+}

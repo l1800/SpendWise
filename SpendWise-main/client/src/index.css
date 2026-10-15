@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap');
+
+:root {
+  font-family: 'Heebo', 'Arial', sans-serif;
+  color: #19364a;
+  background: #f5f4ef;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  font-weight: 400;
+
+  --ink: #19364a;
+  --muted: #84919a;
+  --blue: #285d78;
+  --blue-strong: #17445f;
+  --blue-pale: #eaf1f3;
+  --paper: #f5f4ef;
+  --white: #fffefa;
+  --line: #e7e6df;
+  --green: #48866e;
+  --peach: #d78769;
+  --yellow: #e5b75d;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input, select { font: inherit; }
+button { color: inherit; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #87b3c2; outline-offset: 2px; }
+::selection { color: #fff; background: #285d78; }

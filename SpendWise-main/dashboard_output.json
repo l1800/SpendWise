@@ -1,0 +1,232 @@
+{
+  "current_month": {
+    "alerts": [],
+    "month": 10,
+    "monthly_limit": 0,
+    "spending_status": "N/A",
+    "total_spent": 0,
+    "year": 2025
+  },
+  "date": "2025-10",
+  "next_month_budget": {
+    "categories": [
+      {
+        "category_id": 1024,
+        "category_name": "׳©׳›׳™׳¨׳•׳× / ׳׳©׳›׳ ׳×׳",
+        "current_spending": 4000.0,
+        "is_essential": true,
+        "is_fixed_cost": true,
+        "planned": 4000.0,
+        "reduction": 0,
+        "reduction_percent": 0,
+        "status": "on_target",
+        "target": 4000.0
+      },
+      {
+        "category_id": 1025,
+        "category_name": "׳—׳©׳‘׳•׳ ׳•׳× ׳—׳©׳׳ ׳•׳׳™׳",
+        "current_spending": 750.0,
+        "is_essential": true,
+        "is_fixed_cost": false,
+        "planned": 487.11,
+        "reduction": 397.34,
+        "reduction_percent": 53.0,
+        "status": "on_target",
+        "target": 750.0
+      },
+      {
+        "category_id": 1026,
+        "category_name": "׳׳¨׳ ׳•׳ ׳”",
+        "current_spending": 500.0,
+        "is_essential": true,
+        "is_fixed_cost": true,
+        "planned": 500.0,
+        "reduction": 0,
+        "reduction_percent": 0,
+        "status": "on_target",
+        "target": 500.0
+      },
+      {
+        "category_id": 1027,
+        "category_name": "׳׳–׳•׳ ׳•׳¡׳•׳₪׳¨׳׳¨׳§׳˜",
+        "current_spending": 2400.0,
+        "is_essential": true,
+        "is_fixed_cost": false,
+        "planned": 1815.14,
+        "reduction": 1526.5,
+        "reduction_percent": 63.6,
+        "status": "persistent_overspend",
+        "target": 2000.0
+      },
+      {
+        "category_id": 1028,
+        "category_name": "׳—׳™׳ ׳•׳ ׳•׳™׳׳“׳™׳",
+        "current_spending": 1760.0,
+        "is_essential": true,
+        "is_fixed_cost": false,
+        "planned": 966.57,
+        "reduction": 793.43,
+        "reduction_percent": 45.1,
+        "status": "persistent_overspend",
+        "target": 1750.0
+      },
+      {
+        "category_id": 1029,
+        "category_name": "׳¨׳›׳‘ ׳•׳×׳—׳‘׳•׳¨׳”",
+        "current_spending": 1100.0,
+        "is_essential": false,
+        "is_fixed_cost": false,
+        "planned": 476.24,
+        "reduction": 623.76,
+        "reduction_percent": 56.7,
+        "status": "persistent_overspend",
+        "target": 1000.0
+      },
+      {
+        "category_id": 1030,
+        "category_name": "׳‘׳¨׳™׳׳•׳×",
+        "current_spending": 800.0,
+        "is_essential": true,
+        "is_fixed_cost": false,
+        "planned": 435.1,
+        "reduction": 364.9,
+        "reduction_percent": 45.6,
+        "status": "persistent_overspend",
+        "target": 750.0
+      },
+      {
+        "category_id": 1031,
+        "category_name": "׳‘׳™׳’׳•׳“ ׳•׳”׳ ׳¢׳׳”",
+        "current_spending": 500.0,
+        "is_essential": false,
+        "is_fixed_cost": false,
+        "planned": 283.48,
+        "reduction": 341.52,
+        "reduction_percent": 68.3,
+        "status": "on_target",
+        "target": 500.0
+      },
+      {
+        "category_id": 1032,
+        "category_name": "׳‘׳™׳׳•׳™׳™׳ ׳•׳׳¡׳¢׳“׳•׳×",
+        "current_spending": 750.0,
+        "is_essential": false,
+        "is_fixed_cost": false,
+        "planned": 322.83,
+        "reduction": 427.18,
+        "reduction_percent": 57.0,
+        "status": "persistent_overspend",
+        "target": 600.0
+      },
+      {
+        "category_id": 1033,
+        "category_name": "׳¦׳“׳§׳” ׳•׳׳¢׳©׳¨׳•׳×",
+        "current_spending": 1100.0,
+        "is_essential": false,
+        "is_fixed_cost": false,
+        "planned": 482.73,
+        "reduction": 617.27,
+        "reduction_percent": 56.1,
+        "status": "persistent_overspend",
+        "target": 1000.0
+      },
+      {
+        "category_id": 1034,
+        "category_name": "׳—׳¡׳›׳•׳ ׳•׳× ׳•׳”׳©׳§׳¢׳•׳×",
+        "current_spending": 0,
+        "is_essential": false,
+        "is_fixed_cost": false,
+        "planned": 279.19,
+        "reduction": 336.35,
+        "reduction_percent": 0,
+        "status": "on_target",
+        "target": 750.0
+      },
+      {
+        "category_id": 1035,
+        "category_name": "׳×׳§׳©׳•׳¨׳×",
+        "current_spending": 390.0,
+        "is_essential": true,
+        "is_fixed_cost": false,
+        "planned": 220.3,
+        "reduction": 179.7,
+        "reduction_percent": 46.1,
+        "status": "on_target",
+        "target": 400.0
+      },
+      {
+        "category_id": 1038,
+        "category_name": "׳”׳׳•׳•׳׳•׳×",
+        "current_spending": 1500.0,
+        "is_essential": true,
+        "is_fixed_cost": true,
+        "planned": 1500.0,
+        "reduction": 0,
+        "reduction_percent": 0,
+        "status": "on_target",
+        "target": 1500.0
+      },
+      {
+        "category_id": 1040,
+        "category_name": "׳”׳•׳¦׳׳•׳× ׳©׳•׳ ׳•׳×",
+        "current_spending": 520.0,
+        "is_essential": false,
+        "is_fixed_cost": false,
+        "planned": 231.32,
+        "reduction": 288.68,
+        "reduction_percent": 55.5,
+        "status": "persistent_overspend",
+        "target": 500.0
+      }
+    ],
+    "holiday": {
+      "active": true,
+      "affected_categories": 2,
+      "end": "2026-04-16",
+      "name": "פסח",
+      "start": "2026-04-08"
+    },
+    "mode": "gradual",
+    "month": 11,
+    "net_budget": 12000.0,
+    "planned_spending": 12000.01,
+    "projected_savings": 0,
+    "status": "IMPOSSIBLE_BUDGET",
+    "year": 2025
+  },
+  "program": {
+    "month": 6,
+    "phase": "gradual",
+    "remaining": 1
+  },
+  "savings": {
+    "available_for_savings": 0,
+    "goals": [
+      {
+        "allocated_this_month": 0,
+        "balance": 0.0,
+        "id": 21,
+        "name": "Emergency Fund",
+        "target": 50000.0
+      },
+      {
+        "allocated_this_month": 0,
+        "balance": 0.0,
+        "id": 22,
+        "name": "Vacation",
+        "target": 15000.0
+      },
+      {
+        "allocated_this_month": 0,
+        "balance": 0.0,
+        "id": 23,
+        "name": "Furniture",
+        "target": 10000.0
+      }
+    ],
+    "total_saved_so_far": 0.0
+  },
+  "warnings": [
+    "לא ניתן לאזן את התקציב — סך ההוצאות המתוכננות (12,000₪) עדיין גבוה מההכנסה הפנויה (12,000₪)"
+  ]
+}

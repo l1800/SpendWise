@@ -1,0 +1,1 @@
+export const p="http://localhost:8080/api"

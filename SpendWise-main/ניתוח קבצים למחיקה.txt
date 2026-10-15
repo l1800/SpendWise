@@ -1,0 +1,212 @@
+================================================================================
+  ניתוח קבצים למחיקה — פרויקט כלכלה נבונה
+  GradualBudgetService הוא צינור התקציב החדש
+  תאריך: 2026-07-13
+================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+הקדמה
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+הפונקציה החדשה GradualBudgetService (ב-services/Finance/GradualBudgetService.py)
+היא צינור התקציב המעודכן. כל קבצי השירותים הישנים (CutRankingService,
+CutAllocationService, FinancialHealthService, BudgetPlanService,
+BudgetBuilderService) הוחלפו ואינם בשימוש יותר.
+
+להלן פירוט מלא: מה ניתן למחוק, מה חייב להישאר, ומה צריך לעדכן.
+
+================================================================================
+חלק א' — קבצים שניתן למחוק (86 קבצים)
+================================================================================
+
+
+── 7. SpecialExpenses — הוצאות מיוחדות (5 קבצים) ───────────────────────────
+    לא מיובא ע"י אף קובץ חיוני.
+
+  models/system/SpecialExpense.py
+  repositories/system/SpecialExpenses.py
+  services/system/SpecialExpenses.py
+  controller/system/SpecialExpenses.py
+  dto/system/SpecialExpenseDto.py
+
+── 8. SavingsGoal — מערכת חיסכון (5 קבצים) ────────────────────────────────
+    API של יעדי חיסכון. לא חלק מצינור התקציב.
+
+  models/core/SavingsGoal.py
+  repositories/core/SavingsGoalRepository.py
+  services/core/SavingsGoalService.py
+  controller/core/SavingsGoal.py
+  dto/core/SavingsGoalDto.py
+
+
+================================================================================
+חלק ב' — קבצים שחייבים להישאר (~45 קבצים)
+================================================================================
+
+── MODELS (17) ────────────────────────────────────────────────────────────
+
+  models/base.py
+  models/import_all.py
+  models/core/Users.py
+  models/core/Categories.py
+  models/core/CategoryStandard.py
+  models/core/UserCategoryPreference.py
+  models/core/UserCategoryGoal.py
+  models/Finance/Expenses.py
+  models/Finance/ExpenseType.py
+  models/Finance/Incomes.py
+  models/Finance/IncomeCategory.py
+  models/Finance/IncomeFrequency.py
+  models/Finance/BudgetPlan.py
+  models/system/MonthlyExpensesSummary.py
+  models/system/HolidayCategorySummary.py
+  models/system/SpecialDate.py
+  models/system/SpecialDateType.py
+  models/system/SpecialPeriodSummary.py
+  models/system/EarlyWarningAlert.py
+
+── REPOSITORIES (לפי המודלים) ─────────────────────────────────────────────
+
+  repositories/base_repository.py
+  repositories/core/Users.py
+  repositories/core/Categories.py
+  repositories/core/CategoryStandard.py
+  repositories/core/UserCategoryPreferenceRepository.py
+  repositories/core/UserCategoryGoalRepository.py
+  repositories/Finance/BudgetRepository.py
+  repositories/Finance/Expenses.py
+  repositories/Finance/ExpenseTypes.py
+  repositories/Finance/Incomes.py
+  repositories/Finance/IncomeCategories.py
+  repositories/Finance/IncomeFrequency.py
+  repositories/Finance/BudgetPlanRepository.py
+  repositories/system/MonthlyExpensesSummary.py
+  repositories/system/HolidayCategorySummary.py
+  repositories/system/SpecialDates.py
+  repositories/system/SpecialDateTypes.py
+  repositories/system/SpecialPeriodSummary.py
+  repositories/system/EarlyWarningAlert.py
+
+── SERVICES (8) ────────────────────────────────────────────────────────────
+
+  services/Finance/budget_service.py              ← BudgetService — קריטי!
+  services/Finance/GradualBudgetService.py        ← הפונקציה החדשה שלך
+  services/Finance/CategoryBehaviorService.py     ← בשימוש ע"י BehaviorStressService
+  services/Finance/BehaviorStressService.py       ← בשימוש ע"י GradualBudgetService
+  services/Finance/EarlyWarningService.py         ← בשימוש
+  services/Finance/HolidayAdjustmentService.py    ← בשימוש
+  services/system/MonthlyExpensesSummary.py       ← בשימוש
+  services/system/SpecialPeriodSummary.py         ← בשימוש (resolve_period_ratios)
+  services/system/RecommendationTextService.py    ← שכבת טקסטים — בשימוש
+
+── CONTROLLERS (8) ─────────────────────────────────────────────────────────
+
+  controller/Finance/budget_plan_controller.py    ← ה-API החדש
+  controller/Finance/EarlyWarning.py              ← API התראות
+  controller/Finance/Expenses.py
+  controller/Finance/Incomes.py
+  controller/core/UserCategoryGoal.py
+  controller/core/UserCategoryPreference.py
+  controller/core/categories_controller.py
+  controller/core/users_controller.py
+  controller/system/SpecialDates.py
+  controller/system/HolidayCategorySummary.py
+
+── DTOs ────────────────────────────────────────────────────────────────────
+    כל DTO שמתאים לקבצים שלמעלה (ExpensesDto, IncomesDto, UserCategoryGoalDto,
+    UserCategoryPreferenceCreateDTO, CategoryStandard, EarlyWarningAlertDto,
+    HolidayCategorySummaryDto, SpecialDateDto, SpecialDateTypeDto,
+    SpecialPeriodSummaryDto, MonthlyExpensesSummary, category_dto, usersDto)
+
+── JOBS ────────────────────────────────────────────────────────────────────
+
+  jobs/monthly_budget_job.py
+
+── תשתית ───────────────────────────────────────────────────────────────────
+
+  main.py
+  db_connection.py
+
+================================================================================
+חלק ג' — פעולות נדרשות לאחר מחיקה
+================================================================================
+
+1. עדכון models/import_all.py:
+   להסיר import של:
+   - models/Goals/* (שורות 17–21)
+   - models/lookups/CategogyType (שורה 23)
+   - models/reporting/* (שורות 25–26)
+   - models/survey/* (שורות 28–29)
+   - models/system/SpecialExpense (שורה 32)
+   - models/system/Texts (שורה 36)
+   - models/system/Recommendations (שורה 37)
+
+2. עדכון main.py:
+   להסיר import ו-register של Blueprints:
+   - Goals (goal_details_blueprint, goals_bp)
+   - reporting (reports_bp, report_types_bp)
+   - survey (satisfaction_survey_blueprint, survey_answers_blueprint)
+   - lookups (category_types_bp)
+   - UserSavingGoal
+   - SavingsGoal (savings_blueprint)
+   - SpecialExpenses
+   - system/Recommendations, system/Texts
+   - CutAllocation
+   - financial_controller
+   - budget_controller (אם לא צריך API חיצוני לשלבים 1–6)
+
+3. מחיקת תיקיות ריקות:
+   models/Goals/
+   models/reporting/
+   models/survey/
+   models/lookups/
+   repositories/Goals/
+   repositories/reporting/
+   repositories/survey/
+   repositories/lookups/
+   services/Goals/
+   services/Reports/
+   services/survey/
+   services/lookups/
+   controller/Goals/
+   controller/reporting/
+   controller/survey/
+   controller/lookups/
+   dto/Goals/
+   dto/reporting/
+   dto/survey/
+   dto/lookups/
+
+================================================================================
+חלק ד' — סיכום מספרי
+================================================================================
+
+  ┌────────────────────────────┬──────────┐
+  │ קטגוריה                   │ מס' קבצים│
+  ├────────────────────────────┼──────────┤
+  │ Goals                      │    25    │
+  │ reporting                  │    10    │
+  │ survey                     │    10    │
+  │ lookups                    │     5    │
+  │ UserSavingGoal             │     5    │
+  │ Texts + Recommendations    │    10    │
+  │ SpecialExpenses            │     5    │
+  │ SavingsGoal                │     5    │
+  │ שירותים ישנים              │    11    │
+  ├────────────────────────────┼──────────┤
+  │ סה"כ למחיקה                │    86    │
+  ├────────────────────────────┼──────────┤
+  │ סה"כ חייבים להישאר         │   ~45    │
+  └────────────────────────────┴──────────┘
+
+================================================================================
+
+  ⚠️  שים לב:
+  - GradualBudgetService מייבא CategoryBehaviorService ו-BehaviorStressService
+    ולכן שניהם חייבים להישאר.
+  - BudgetService (services/Finance/budget_service.py) ו-BudgetRepository
+    חייבים להישאר — GradualBudgetService משתמש בהם.
+  - RecommendationTextService (services/system/RecommendationTextService.py)
+    הוא קובץ נפרד מ-Recommendations — הוא חייב להישאר.
+  - SpecialPeriodSummary/service חייב להישאר — resolve_period_ratios בשימוש.
+================================================================================
