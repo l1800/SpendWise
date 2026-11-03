@@ -16,6 +16,7 @@ export default defineConfig({
       '/expense_types': 'http://localhost:5000',
       '/savings': 'http://localhost:5000',
       '/api': 'http://localhost:5000',
+      '/admin': 'http://localhost:5000',
     },
   },
 })

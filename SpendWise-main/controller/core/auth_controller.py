@@ -233,7 +233,11 @@ def update_household(user_id):
 
 def register_auth_middleware(app):
     public_endpoints = {"auth.login", "auth.register", "auth.logout", "home", "static"}
-    admin_endpoints = {"auth.me", "auth.logout", "auth.households", "auth.update_household_role", "auth.update_household"}
+    admin_endpoints = {
+        "auth.me", "auth.logout", "auth.households", "auth.update_household_role", "auth.update_household",
+        "admin_analytics.overview", "admin_analytics.averages", "admin_analytics.trends", "admin_analytics.health",
+        "admin_analytics.latest_period",
+    }
     household_endpoints = {
         "auth.me", "auth.household_catalog", "users.get_user_by_id",
         "budget.get_budget", "budget.get_expenses_by_category", "budget.get_standard_budget", "budget.get_stress",

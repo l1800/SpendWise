@@ -56,6 +56,7 @@ from controller.system.SpecialPeriodSummary import special_period_summary_bluepr
 from controller.system.SpecialDates import special_dates_blueprint
 from controller.system.MonthlyExpensesSummary import monthly_expenses_summary_blueprint
 from controller.Finance.EarlyWarning import early_warning_bp
+from controller.system.AdminAnalytics import admin_analytics_bp
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SPENDWISE_SESSION_SECRET") or os.urandom(32)
@@ -106,6 +107,7 @@ app.register_blueprint(auth_blueprint)
 app.register_blueprint(budget_plan_controller)
 app.register_blueprint(financial_controller)
 app.register_blueprint(early_warning_bp)
+app.register_blueprint(admin_analytics_bp)
 register_auth_middleware(app)
 
 print(app.url_map)
