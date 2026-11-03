@@ -72,48 +72,61 @@ class BudgetBuilderService:
             })
 
         total_spending = sum(b["planned_amount"] for b in budget)
-        monthly_limit = max(0, base_income - total_cut_needed)
+
+        # יעד הקיצוץ (stretch goal) אינו מוקצה על ידי allocation של
+        # CutAllocationService, ולכן כמעט תמיד "חסר" — הוא נשאר ליעד חיסכון.
+        # מן המסגרת מורידים רק את הקיצוץ שקרה בפועל, כלומר שנים-עשר חודשי
+        # חיים בתוך ההכנסה; אחרת השלב הבא יקרוס 90% מכל קטגוריה גמישה
+        # בשביל יעד שלא הוקצה.
+        monthly_limit = max(0, base_income - sum(b["cut_amount"] for b in budget))
 
         # =========================
-        # IMPOSSIBLE — הוצאות עולות על הכנסה
+        # שלב א׳ — הוצאה קבועה ושכר דירה
+        # (המסגרת כאן היא ההכנסה הפנויה; יעד הקיצוץ נשאר כלשונו ב-total_cut_needed)
+        # ה"תקרה" היא התשלומים הקשיחים בלבד: הוצאות שעליהן שילמנו (קבועות,
+        # וכן חיוניות בהיקף ההוצאה שהתקיים בפועל). החיוני-גמיש שמעל ההוצאה
+        # הקיימת (למשל ארנונה שאינה מסומנת קבועה) אינו תקרה — הוא החריגה
+        # עצמה. לכן אם ההוצאות הקשיחות לבדן עוברות את ההכנסה, המסגרת
+        # מתרחבת עד אליהן, והמשפחה מקבלת "גירעון קשיח" מפורש במקום
+        # קיצוץ דמיוני של 100% בכל הקטגוריות באשר הן.
         # =========================
-        if total_spending > base_income:
-            return {
-                "net_budget": base_income,
-                "total_cut_needed": total_cut_needed,
-                "monthly_limit": round(monthly_limit, 2),
-                "planned_spending": round(total_spending, 2),
-                "actual_cut": 0,
-                "remaining_balance": round(base_income - total_spending, 2),
-                "remaining_deficit": total_cut_needed,
-                "budget_health_score": round(
-                    self._calc_health_score(base_income, total_spending, monthly_limit), 2
-                ),
-                "status": "IMPOSSIBLE_BUDGET",
-                "message": "לא ניתן לאזן תקציב — ההוצאות עולות על ההכנסה גם אחרי קיצוץ",
-                "budget": budget,
-                "warnings": self._build_warnings(missing_allocation_names, monthly_limit),
-            }
+        fixed_total = self._fixed_total(budget)
+        rigid_total = fixed_total + self._essential_spent(budget)
+        rigid_overrun = max(0.0, rigid_total - base_income)
+
+        for b in budget:
+            if b.get("is_fixed_cost") and rigid_overrun > 0:
+                b["status"] = "covered"
+                b["note"] = "הוצאה קבועה — לא קוצצה (מסגרת התקיימה גם בגירעון)"
 
         # =========================
-        # תיקון חכם אם יש חריגה
+        # שלב ב׳ — תיקון הוצאות גמישות (לעולם לא קבועות)
         # =========================
-        if total_spending > monthly_limit:
+        target = min(monthly_limit, base_income)
+        flexible_room = max(0.0, target - fixed_total)
+        deficit = total_spending - max(flexible_room, rigid_total)
+        overrun = total_spending - base_income
 
-            deficit = total_spending - monthly_limit
-
-            for b in sorted(budget, key=lambda x: x["pain_level"]):
+        # ---------------------------------------------------
+        # שלב ג׳ — קיצוץ עדין: עד 20% / 10% מכל קטגוריה גמישה בפעם אחת
+        # ---------------------------------------------------
+        adjusted = False
+        if deficit > 0:
+            for b in self._cuttable(budget):
 
                 if deficit <= 0:
                     break
 
-                if b["pain_level"] >= 8:
+                # חיוני-גמיש נחתך רק מעבר להתחייבות שעליה שילם בפועל
+                floor = b["current_amount"] if b.get("is_essential") else 0
+                room = max(0.0, b["planned_amount"] - floor)
+                if room <= 0:
                     continue
 
                 max_extra_pct = 0.2 if b["pain_level"] <= 3 else 0.1
 
                 extra_cut = min(
-                    b["planned_amount"] * max_extra_pct,
+                    room * max_extra_pct,
                     deficit
                 )
 
@@ -121,12 +134,74 @@ class BudgetBuilderService:
                 b["cut_amount"] += extra_cut
                 b["planned_amount"] = round(b["planned_amount"], 2)
                 b["cut_amount"] = round(b["cut_amount"], 2)
+                b["cut_percent"] = self._calc_cut_percent(b["cut_amount"], b["current_amount"])
+                b["status"] = self._calc_status(b, b["cut_amount"])
+                b["note"] = self._build_note(b, b["cut_amount"], b["cut_percent"])
                 deficit -= extra_cut
+                adjusted = True
+
+        # ---------------------------------------------------
+        # שלב ד׳ — בורא מסגרת: קוטמים את ההוצאות הגמישות ביחס שהן עצמן
+        # ייצרו. הגמישות נדחסות יחד ליתרתם (הוצאה פחות התקרה הקשיחה),
+        # ורק אם גם זה לא מספיק — עד אפס.
+        # ---------------------------------------------------
+        total_spending = sum(b["planned_amount"] for b in budget)
+        flexible_spent = sum(b["planned_amount"] for b in self._cuttable(budget))
+
+        if total_spending > base_income and flexible_spent > 0:
+            affordable = max(0.0, base_income - (total_spending - flexible_spent))
+            scale = min(1.0, affordable / flexible_spent)
+
+            if scale < 1.0:
+                for b in self._cuttable(budget):
+                    new_planned = round(b["planned_amount"] * scale, 2)
+                    b["cut_amount"] = round(b["cut_amount"] + b["planned_amount"] - new_planned, 2)
+                    b["cut_percent"] = self._calc_cut_percent(b["cut_amount"], b["current_amount"])
+                    b["planned_amount"] = new_planned
+                    b["status"] = self._calc_status(b, b["cut_amount"])
+                    b["note"] = self._build_note(b, b["cut_amount"], b["cut_percent"])
+                adjusted = True
+
+        # ---------------------------------------------------
+        # קטגוריה קבועה שמוצגת תמיד נעולה; מוצגת כ"covered" אם הייתה חריגה
+        # ---------------------------------------------------
+        for b in budget:
+            if b.get("is_fixed_cost") and b["status"] != "covered":
+                b["status"] = "protected"
+                b["note"] = "הוצאה קבועה — לא ניתנת לקיצוץ"
 
         total_spending = sum(b["planned_amount"] for b in budget)
         actual_cut = sum(b["cut_amount"] for b in budget)
+        remaining_deficit = round(max(0.0, total_spending - base_income), 2)
         health_score = self._calc_health_score(base_income, total_spending, monthly_limit)
+
+        status = self._calc_overall_status(
+            total_spending, base_income, monthly_limit,
+            rigid_total=rigid_total, flexible_room=flexible_room,
+            fixed_total=fixed_total,
+        )
+
         warnings = self._build_warnings(missing_allocation_names, monthly_limit)
+
+        if rigid_overrun > 0:
+            warnings = warnings or []
+            warnings.append(
+                f"גירעון קשיח: ההוצאות הקבועות וההוצאה החיונית שכבר שולמה "
+                f"עולות על ההכנסה. ההכנסה או ההוצאות הקבועות הן שדורשות "
+                f"טיפול — לא קיצוץ הוצאות משתנות."
+            )
+        elif remaining_deficit > 0:
+            warnings = warnings or []
+            warnings.append(
+                f"נותר גירעון של {int(remaining_deficit)}₪ גם אחרי צמצום ההוצאות הגמישות."
+            )
+
+        message = None
+        if status == "IMPOSSIBLE_BUDGET":
+            message = (
+                "ההוצאות הקשיחות (קבועות + חיוניות) עולות על ההכנסה — "
+                "המסגרת הועמדה על ההוצאות עצמן, ואין מקום לקיצוץ הוצאות משתנות"
+            )
 
         return {
             "net_budget": base_income,
@@ -135,12 +210,50 @@ class BudgetBuilderService:
             "planned_spending": round(total_spending, 2),
             "actual_cut": round(actual_cut, 2),
             "remaining_balance": round(base_income - total_spending, 2),
-            "remaining_deficit": round(max(0, total_cut_needed - actual_cut), 2),
+            "remaining_deficit": remaining_deficit,
+            "rigid_total": round(rigid_total, 2),
+            "rigid_overrun": round(rigid_overrun, 2),
             "budget_health_score": round(health_score, 2),
-            "status": self._calc_overall_status(total_spending, base_income, monthly_limit),
+            "status": status,
+            "message": message,
             "budget": budget,
+            "fixed_costs": round(fixed_total, 2),
+            "adjusted": adjusted,
             "warnings": warnings,
         }
+
+    # =========================
+    # FIXED / CUTTABLE
+    # =========================
+    def _fixed_total(self, budget):
+        """סך ההוצאות הקבועות — שכר דירה, הלוואות וכל סעיף שסומן כקבוע."""
+        return sum(b["planned_amount"] for b in budget if b.get("is_fixed_cost"))
+
+    def _essential_spent(self, budget):
+        """ההוצאה החיונית (שאינה קבועה) שכבר שולמה בפועל — התקרה שלה."""
+        return sum(
+            b["current_amount"]
+            for b in budget
+            if b.get("is_essential") and not b.get("is_fixed_cost")
+        )
+
+    def _calc_cut_percent(self, cut_amount, current_amount):
+        """אחוז הקיצוץ בפועל — מעודכן בכל שינוי של planned_amount."""
+        if current_amount <= 0:
+            return 0
+        return round(cut_amount / current_amount * 100, 1)
+
+    def _headroom(self, budget):
+        """המרווח שנותר בקטגוריה גמישה בין התכנית לתקרה שלה."""
+        floor = budget["current_amount"] if budget.get("is_essential") else 0
+        return max(0.0, budget["planned_amount"] - floor)
+
+    def _cuttable(self, budget):
+        """ההוצאות שניתן להקטין, מן הכי פחות כואבת. קבועות ואטומות — בחוץ."""
+        return [
+            b for b in sorted(budget, key=lambda x: x["pain_level"])
+            if not b.get("is_fixed_cost") and b["pain_level"] < 8
+        ]
 
     # =========================
     # PAIN ENGINE
@@ -194,6 +307,7 @@ class BudgetBuilderService:
     def _calc_status(self, item, cut_amount):
         """
         קובע סטטוס לכל קטגוריה:
+            covered    — קבועה שהייתה חריגה, ולכן הורחבה המסגרת ולא קוצצה
             protected  — קבועה, לא ניתנת לקיצוץ
             reduced    — קוצצה
             unchanged  — לא קוצצה
@@ -207,16 +321,30 @@ class BudgetBuilderService:
 
         return "unchanged"
 
-    def _calc_overall_status(self, total_spending, base_income, monthly_limit):
+    def _calc_overall_status(self, total_spending, base_income, monthly_limit,
+                             rigid_total=0, flexible_room=0, fixed_total=0):
         """
         סטטוס כללי של התוכנית.
+
+            OK                 — התכנית בתוך ההכנסה ובתוך יעד הקיצוץ
+            FRAME_RAISED       — הוצאה קבועה חייבה להרחיב את המסגרת, אבל
+                                 התכנית עדיין בתוך ההכנסה (מכוסה, לא חריגה)
+            LIMIT_EXCEEDED     — התכנית בתוך ההכנסה, אבל מעל יעד הקיצוץ
+            DEFICIT            — גם אחרי צמצום כל ההוצאות הגמישות נותר גירעון
+            IMPOSSIBLE_BUDGET  — ההוצאות הקשיחות לבדן עולות על ההכנסה
         """
 
-        if total_spending > base_income:
+        if rigid_total > base_income:
             return "IMPOSSIBLE_BUDGET"
 
-        if total_spending > monthly_limit:
+        if total_spending > base_income:
+            return "DEFICIT"
+
+        if total_spending > max(monthly_limit, rigid_total):
             return "LIMIT_EXCEEDED"
+
+        if fixed_total > monthly_limit:
+            return "FRAME_RAISED"
 
         return "OK"
 

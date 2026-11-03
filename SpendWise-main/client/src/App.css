@@ -191,6 +191,14 @@
 .plan-summary strong { color: #3c5c68; font-size: 15px; }
 .plan-row { display: grid; grid-template-columns: 9px 1fr auto auto auto; align-items: center; gap: 12px; min-height: 44px; border-bottom: 1px solid #f0efe9; }
 .plan-row .category-mark { height: 23px; }
+.plan-status { display: grid; gap: 4px; margin-top: 12px; padding: 10px 14px; border-radius: 6px; background: #eef5ef; border-inline-start: 4px solid #5b8d6f; }
+.plan-status small { color: #7d8a86; font-size: 10px; }
+.plan-status strong { color: #3c5c68; font-size: 12px; }
+.plan-status.limit_exceeded, .plan-status.deficit, .plan-status.impossible_budget { background: #fdf1ee; border-inline-start-color: #c0705d; }
+.plan-status.frame_raised { background: #f2f4fb; border-inline-start-color: #67759d; }
+.plan-row.protected b, .plan-row.covered b { color: #67759d; }
+.plan-row.covered .plan-target { color: #67759d; }
+.plan-warning { margin: 8px 0 0; padding: 8px 12px; border-radius: 6px; background: #fdf1ee; color: #a35d4c; font-size: 11px; }
 .plan-row strong { color: #506671; font-size: 11px; }
 .plan-row span:not(.category-mark) { color: #929e9e; font-size: 10px; }
 .plan-row b { color: #3e6878; font-size: 11px; }

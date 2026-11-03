@@ -64,7 +64,8 @@ class ExpenseService:
     # UPDATE
     # =====================================================
     def update_expense(self, expense_id: int, dto):
-        return self.repo.update(
+        previous = self.repo.get_by_id(expense_id)
+        updated = self.repo.update(
             expense_id,
             user_id=dto.user_id,
             amount=dto.amount,
@@ -72,9 +73,34 @@ class ExpenseService:
             expense_type_id=dto.expense_type_id,
             category_id=dto.category_id
         )
+        if updated:
+            # העריכה יכולה לשנות גם סכום וגם חודש — לכן בונים מחדש את שני החודשים
+            self._rebuild_months(dto.user_id, previous.date if previous else None, dto.date)
+        return updated
 
     # =====================================================
     # DELETE
     # =====================================================
     def delete_expense(self, expense_id: int):
-        return self.repo.delete_by_id(expense_id)
+        previous = self.repo.get_by_id(expense_id)
+        if not previous:
+            return None
+        user_id, removed_date = previous.user_id, previous.date
+        deleted = self.repo.delete_by_id(expense_id)
+        if deleted:
+            self._rebuild_months(user_id, removed_date)
+        return deleted
+
+    # =====================================================
+    # עזר — רענון הסיכום החודשי אחרי שינוי בהוצאה
+    # =====================================================
+    def _rebuild_months(self, user_id, *dates):
+        seen = set()
+        for value in dates:
+            if value is None:
+                continue
+            key = (value.year, value.month)
+            if key in seen:
+                continue
+            seen.add(key)
+            self.monthly_service.recompute_month(user_id, value.year, value.month)

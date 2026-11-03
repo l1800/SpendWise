@@ -2,6 +2,7 @@ from datetime import datetime
 from sqlalchemy import func, extract
 from models.Finance.Expenses import Expense
 from models.core.Categories import Category
+from models.core.CategoryStandard import CategoryStandard
 from models.system.MonthlyExpensesSummary import MonthlyExpensesSummary
 from models.system.EarlyWarningAlert import EarlyWarningAlert
 
@@ -54,18 +55,38 @@ class EarlyWarningService:
         }
 
         total_spent = sum(v["total"] for v in spent_map.values())
-        monthly_limit = budget_plan.get("monthly_limit", 0)
+        fixed_cids = {
+            cid for (cid,) in self.session.query(CategoryStandard.category_id)
+            .filter(CategoryStandard.is_fixed_cost.is_(True))
+            .all()
+        }
+
         budget_items = budget_plan.get("budget", [])
         budget_map = {}
+        fixed_spent = 0.0
         for b in budget_items:
             cid = b.get("category_id")
             planned = b.get("current_amount", 0) - b.get("cut_amount", 0)
+            is_fixed = bool(b.get("is_fixed_cost")) or cid in fixed_cids
             budget_map[cid] = {
                 "category_name": b.get("category_name", ""),
-                "planned": max(0, planned)
+                "planned": max(0, planned),
+                "is_fixed_cost": is_fixed,
             }
+            if is_fixed:
+                fixed_spent += spent_map.get(cid, {}).get("total", 0)
 
-        budget_used_pct = (total_spent / monthly_limit * 100) if monthly_limit > 0 else 0
+        # הוצאה קבועה שנגרמה אינה "חריגה" — היא מרחיבה את המסגרת.
+        # לכן המסגרת שעליה מתריעים היא ההכנסה (אם ידועה), ואם לא —
+        # יעד החיסכון בתוספת ההוצאות הקבועות.
+        income = float(budget_plan.get("income") or 0)
+        planned_limit = float(budget_plan.get("monthly_limit", 0) or 0)
+        monthly_limit = max(planned_limit + fixed_spent, income)
+
+        # נוצל — אך ורק מההוצאות הגמישות, ביחס למסגרת שלהן
+        flexible_spent = total_spent - fixed_spent
+        flexible_frame = max(0.0, monthly_limit - fixed_spent)
+        budget_used_pct = (flexible_spent / flexible_frame * 100) if flexible_frame > 0 else 0
 
         general_status = "OK"
         general_message = ""
@@ -108,6 +129,12 @@ class EarlyWarningService:
 
             spent = spent_map.get(cid, {}).get("total", 0)
             spent_pct = (spent / planned) * 100
+
+            # הוצאה קבועה (שכירות, הלוואה) אינה ניתנת לקיצוץ — חריגה בה
+            # אינה התרעת בזבוז אלא מסגרת שמתרחבת հետ ההוצאה, ולכן אינה
+            # מוצגת כחריגה.
+            if budget_data["is_fixed_cost"]:
+                continue
 
             if spent > planned:
                 category_alerts.append({

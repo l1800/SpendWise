@@ -23,6 +23,8 @@ from repositories.core.Users import UserRepository
 from services.Finance.FinancialStressService import FinancialStressService
 from services.Finance.BehaviorStressService import BehaviorStressService
 from services.Finance.FinancialHealthService import FinancialHealthService
+from models.Finance.Incomes import Income
+from models.Finance.IncomeFrequency import IncomeFrequency
 
 budget_plan_controller = Blueprint("budget_plan", __name__)
 @budget_plan_controller.route("/test-budget", methods=["GET"])
@@ -127,9 +129,30 @@ def get_budget_status():
                            f"Run POST /budget/plan first."
             }), 404
 
+        # אומדן הכנסה — לחישוב גירעון/יתרה במצב התקציב
+        freq_names = {
+            fid: (name or "").lower()
+            for fid, name in session.query(
+                IncomeFrequency.frequency_id, IncomeFrequency.frequency_name
+            ).all()
+        }
+        income_total = 0.0
+        for inc in session.query(Income).filter(Income.user_id == user_id).all():
+            amount = inc.amount or 0
+            fname = freq_names.get(inc.frequency_id, "")
+            if "שנת" in fname or "year" in fname:
+                income_total += amount / 12
+            elif "שבוע" in fname or "week" in fname:
+                income_total += amount * 4.33
+            elif "יומ" in fname or "day" in fname:
+                income_total += amount * 30
+            else:
+                income_total += amount
+
         # rebuild the plan dict shape that check_spending_vs_budget expects
         plan_dict = {
             "monthly_limit": sum(r.planned_amount for r in plan_rows),
+            "income": round(income_total, 2),
             "budget": [
                 {
                     "category_id": r.category_id,
@@ -176,11 +199,6 @@ def get_budget_plans_data():
     try:
         _, plan_repo, _ = _build_service(session)
         rows = plan_repo.get_plan_for_month(user_id, year, month)
-        raise Exception("TEST ROUTE")
-        print("USER:", user_id)
-        print("YEAR:", year)
-        print("MONTH:", month)
-        print("ROWS:", len(rows))
         return jsonify({
             "year": year,
             "month": month,

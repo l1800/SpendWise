@@ -9,6 +9,7 @@ from book_part_b import body_intro, goals, market, spec
 from book_part_c import algorithm
 from book_part_d import architecture, models_chapter
 from book_part_e import classes, technologies
+from book_part_f import admin
 
 
 def main():
@@ -37,6 +38,9 @@ def main():
     # חלק ה׳ — מחלקות, טכנולוגיות
     classes(doc)
     technologies(doc)
+
+    # חלק ו׳ — מרכז הניהול והמעקב (Admin Control Center)
+    admin(doc)
 
     doc.save(kit.OUT)
     print("נשמר:", kit.OUT)

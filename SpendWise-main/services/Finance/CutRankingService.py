@@ -88,7 +88,9 @@ class CutRankingService:
             score = non_ess * 0.35 + low_imp * 0.20 + weight * 0.25 + trend * 0.20
 
             # אחוז קיצוץ (רק אחוז!)
-            if is_essential and is_fixed:
+            # הוצאה קבועה (שכר דירה, הלוואה) אינה ניתנת לקיצוץ בכלל —
+            # אם היא גדולה מן המסגרת, המסגרת היא שגדלה, ולא הקטגוריה שקטנה
+            if is_fixed:
                 pct = 0
             elif is_essential:
                 pct = 5 if score > 0.4 else (3 if score > 0.2 else 0)
@@ -102,13 +104,13 @@ class CutRankingService:
                 else:
                     pct = 0
 
-            max_pct = std.get("max_cut_percent", 100)
+            max_pct = 0 if is_fixed else std.get("max_cut_percent", 100)
             pct = min(pct, max_pct)
 
             # הסבר
             reasons = []
-            if is_essential and is_fixed:
-                reasons.append("קבוע")
+            if is_fixed:
+                reasons.append("הוצאה קבועה — מוגנת מקיצוץ")
             elif is_essential:
                 reasons.append("חיוני — מוגבל")
             if not is_essential:
@@ -124,6 +126,7 @@ class CutRankingService:
                 "category_id": cid,
                 "category_name": c["category_name"],
                 "is_essential": is_essential,
+                "is_fixed_cost": is_fixed,
                 "cut_score": round(score, 3),
                 "recommended_cut_pct": pct,
                 "max_pct": max_pct,

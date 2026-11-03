@@ -1,4 +1,7 @@
-from sqlalchemy import desc
+from datetime import date
+
+from sqlalchemy import desc, func
+from models.Finance.Expenses import Expense
 from models.system.MonthlyExpensesSummary import MonthlyExpensesSummary
 from models.core.Categories import Category
 from repositories.base_repository import BaseRepository
@@ -46,6 +49,34 @@ class MonthlyExpensesSummaryRepository(BaseRepository):
             .all()
         )
 
+    def rebuild_month(self, user_id, year, month):
+        """מחשב מחדש את סיכום החודש מתוך טבלת ההוצאות ומחזיר את מספר הקטגוריות."""
+        month_year = f"{year}-{month:02d}"
+        start = date(year, month, 1)
+        end = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
+
+        totals = dict(
+            self.session.query(Expense.category_id, func.sum(Expense.amount))
+            .filter(Expense.user_id == user_id, Expense.date >= start, Expense.date < end)
+            .group_by(Expense.category_id)
+            .all()
+        )
+
+        self.session.query(MonthlyExpensesSummary).filter_by(
+            user_id=user_id, month_year=month_year
+        ).delete()
+
+        for category_id, total in totals.items():
+            self.session.add(MonthlyExpensesSummary(
+                user_id=user_id,
+                category_id=category_id,
+                month_year=month_year,
+                total_amount=float(total or 0),
+            ))
+
+        self.session.commit()
+        return len(totals)
+
     # ================= ANALYSIS =================
     def get_category_analysis_data(self, user_id, year, month):
 
@@ -59,30 +90,6 @@ class MonthlyExpensesSummaryRepository(BaseRepository):
             prev_month = month - 1
 
         previous_month = f"{prev_year}-{prev_month:02d}"
-
-        # =========================
-        # one-time covered expenses — sum per category for current month
-        # these should NOT be counted in analysis because savings covered them
-        # =========================
-        from models.Finance.Expenses import Expense
-        from sqlalchemy import func
-
-        one_time_covered = (
-            self.session.query(
-                Expense.category_id,
-                func.sum(Expense.amount).label("covered_total")
-            )
-            .filter(Expense.user_id == user_id)
-            .filter(Expense.is_one_time == True)
-            .filter(Expense.covered_by_savings == True)
-            .filter(func.format(Expense.date, "yyyy-MM") == current_month)
-            .group_by(Expense.category_id)
-            .all()
-        )
-        covered_map = {
-            row.category_id: row.covered_total
-            for row in one_time_covered
-        }
 
         # JOIN נכון לפי category_id
         current_rows = (
@@ -111,18 +118,13 @@ class MonthlyExpensesSummaryRepository(BaseRepository):
 
         for ms, cat in current_rows:
 
-            # subtract one-time covered expenses — they don't distort trends
-            raw_amount = ms.total_amount or 0
-            covered = covered_map.get(ms.category_id, 0)
-            adjusted_amount = max(0, raw_amount - covered)
-
             result.append({
                 "category_id": ms.category_id,
                 "category_name": cat.category_name,
                 "is_essential": cat.category_type_id == 1,
                 "expense_type_id": getattr(ms, "expense_type_id", 2),
 
-                "current_month_amount": adjusted_amount,
+                "current_month_amount": float(ms.total_amount or 0),
                 "previous_month_amount": prev_map.get(ms.category_id, 0),
 
                 "last_6_months": self.get_last_6_months_values(

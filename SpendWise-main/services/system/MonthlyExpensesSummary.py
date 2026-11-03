@@ -7,6 +7,14 @@ class MonthlyExpensesSummaryService:
         month_year = expense_date.strftime("%Y-%m")
         return self.repository.add_amount(user_id, category_id, month_year, amount)
 
+    def recompute_month(self, user_id, year, month):
+        """בונה מחדש את הסיכום החודשי מתוך טבלת ההוצאות — מקור האמת היחיד.
+
+        כך הסיכום נשאר נכון גם אחרי עריכת הוצאה, מחיקתה, או הוספה שלא עברה
+        דרך שירות ההוצאות (למשל נתוני דגמה).
+        """
+        return self.repository.rebuild_month(user_id, year, month)
+
     def calculate_category_analysis(self, user_id, year, month):
 
         rows = self.repository.get_category_analysis_data(user_id, year, month)
