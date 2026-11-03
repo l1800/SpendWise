@@ -1,6 +1,17 @@
+# ── שרת ──
 Flask>=3.0,<4
+Werkzeug>=3.0,<4
+
+# ── מסד נתונים ──
 SQLAlchemy>=2.0,<3
-pydantic>=2.0,<3
-fastapi>=0.110,<1
 pyodbc>=5.0,<6
+
+# ── ולידציה ──
+pydantic>=2.0,<3
 email-validator>=2.0,<3
+
+# ── משימות מתוזמנות (jobs/monthly_budget_job.py) ──
+APScheduler>=3.10,<4
+
+# ── בניית ספר הפרויקט (build_book.py) ──
+python-docx>=1.1,<2

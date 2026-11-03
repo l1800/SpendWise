@@ -59,9 +59,10 @@
 │   └── system/               # HolidayCategorySummary, SpecialPeriodSummary, SpecialDates, MonthlyExpensesSummary
 ├── dto/                      # Data Transfer Objects (create/response schemas)
 │   └── ... (מקביל ל-controller)
-├── client/                   # Frontend React/TypeScript (⚠️ כרגע לא מחובר — פרויקט ספרייה לדוגמה)
-│   ├── src/components/       # login, signUp, home, header, allBook, addBook, lend, admin, oneBook, loading
-│   └── src/server/           # API calls — book.ts, comment.ts, lend.ts, users.ts
+├── client/                   # Frontend React/TypeScript — SpendWise
+│   ├── src/App.tsx           # מסך התקציב החכם (תוכנית, מצב, התראות)
+│   ├── src/AdminConsole.tsx  # מרכז הניהול והמעקב (מנהל)
+│   └── src/components/       # AuthScreen, admin/*
 └── venv/                     # Python venv
 ```
 
@@ -183,8 +184,7 @@
 - `CutAllocationService.__init__` מקבל 3 פרמטרים אבל ב-controller מועברים רק 2 (budget_service)
 
 ### Frontend
-- `client/` מכיל פרויקט React של ספרייה — לא קשור עדיין לפרויקט הכלכלה
-- `client/fronted/` (שגיאת כתיב) — נראה כמו העתק/ניסיון
+- תלויות מתבנית ספרייה הוסרו מ־`client/package.json` (axios, redux, mobx, styled-components ועוד)
 
 ### מודל `Monthly_Expenses_Summary`
 - הקובץ `Monthly_Expenses_Summary.py` ב-controller וב-DTO סומנו כ-Deleted ב-git status
